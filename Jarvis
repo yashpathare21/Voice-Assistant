@@ -1,0 +1,200 @@
+import pyttsx3
+import datetime
+import speech_recognition as sr
+import wikipedia
+import webbrowser
+import os
+import datetime
+import smtplib
+import getpass
+
+# main variable (setting engine) ---
+engine = pyttsx3.init("sapi5")
+
+# getting voices --- 
+voices = engine.getProperty("voices")
+
+# to set voice[0] or voice[1] ---
+engine.setProperty('voice', voices[0].id)
+
+
+
+# main stuff ---
+def speak(audio):
+    ''' this function is the main function which we will use to speak '''
+    engine.say(audio)
+    engine.runAndWait()
+
+
+def take_command():
+    ''' this function takes input from microphone ''' 
+    r = sr.Recognizer()
+    with sr.Microphone() as source:
+        print("listening...")
+        r.pause_threshold = 1
+        r.energy_threshold = 300
+        audio = r.listen(source)
+
+    try:
+        print("Recognizing...")
+        query = r.recognize_google(audio, language="en-in")
+        print("User said:",query)
+
+    except Exception as e:
+        print("Could you please say that again!")
+        return "None"
+    return query
+
+
+
+def wish_me():
+    ''' this function greets the user '''
+    time = int(datetime.datetime.now().hour) 
+
+    if time >= 0 and time < 12:
+        speak("Good Morning Sir!")
+    elif time >= 12 and time < 18:
+        speak("Good Afternoon Sir!")
+    else:
+        speak("Good Evening Sir!")
+
+
+# for email ---
+sender_email = "forpythontesting21@gmail.com"
+receiver_email = "yashpathare21@gmail.com"
+password = "ndqdapwaxpfmfvnm"
+message = "Hi, this is testing"
+
+
+if __name__ == "__main__":
+    wish_me()
+
+    while True:
+        query = take_command().lower()
+
+        def remove_space(string):
+            return string.replace(" ", "")
+
+        if "wikipedia" in query:
+            speak("Searching wikipedia!")
+
+            if "search" in query:
+                query = query.replace("search","")
+
+            try:
+                query = query.replace("wikipedia","")
+                remove_space(query)
+                results = wikipedia.summary(query, sentences=2)
+                speak("According to wikipedia")
+                print(results)
+                speak(results)
+
+            except wikipedia.exceptions.PageError:
+                print("An error occured!")
+                print("Sorry, couldn't find that page") 
+
+            except Exception:
+                print("Oops! An error occured!")
+                print("Could you say that again!")
+                
+
+
+        elif "hello jarvis" in query or "hi jarvis" in query:
+            speak("Hello Sir!")
+            print("Hello Sir!")
+
+        elif query in ["exit","bye","quit","shutdown"]:
+            speak("Exiting")
+            print("Exiting...")
+            break
+
+        elif "search on youtube" in query:
+            print("What do you wanna search for?")
+            speak("What do you wanna search for?")
+            command = take_command()
+            webbrowser.open("https://www.youtube.com/results?search_query=" + command)
+
+        elif "open youtube" in query:
+            #print("Opening YouTube...")
+            webbrowser.open("https://www.youtube.com/")
+
+        elif "search on google" in query:
+            print("What do you wanna search for?")
+            speak("What do you wanna search for?")
+            command = take_command()
+            webbrowser.open("https://www.google.com/search?q=" + command)
+
+        elif "open google" in query:
+            #print("Opening Google...")
+            webbrowser.open("https://www.google.com/")
+
+
+        elif "what is the day today" in query or "day" in query:
+            dt = datetime.datetime.now()
+            day = dt.strftime("%A")
+            print(day)
+            speak(day) 
+
+        elif "what is the current month" in query or "month" in query:
+            month = datetime.datetime.now()
+            month = month.strftime("%B")
+            print(month)
+            speak(month)
+
+        elif "what is the time" in query or "time" in query or "current time" in query:
+            # will print time in 12-hour clock mode
+            time = datetime.datetime.now()
+            time = time.strftime("%I:%M:%p")
+            print(time)
+            speak(time) 
+
+        elif "what is the date today" in query or "what is the date" in query or "date" in query:
+            # will print date in -month/date/year- format 
+            date = datetime.datetime.now()
+            date = date.strftime("%m/%d/%Y")
+            print(date)
+            speak(date) 
+
+
+        elif "open spotify" in query or "play music" in query or "spotify" in query:
+            music_dir = "C:\\Users\\admin\\AppData\\Roaming\\Spotify\\Spotify.exe"
+            os.startfile(music_dir)
+
+
+        elif "email" in query or "send email" in query:
+            server = smtplib.SMTP("smtp.gmail.com", 587)
+            server.starttls()
+
+            server.login(sender_email, password)
+            print("Login success!")
+
+            print("What's your message?")
+            speak("What's your message?")
+            message = take_command()
+            print("Your message is:", message)
+
+            print("Do you conform this message? Say 'yes' or 'no'")
+            speak("Do you conform this message? Say 'yes' or 'no'")
+            msg_confo = take_command()
+            msg_confo = msg_confo.lower()
+            print("User said:", msg_confo)
+
+            while True:
+                if msg_confo == "yes":
+                    server.sendmail(sender_email, receiver_email, message)
+                    email_confo = "Message sent to: " + receiver_email
+                    print(email_confo)
+                    speak(email_confo)
+                    break
+                
+                elif msg_confo == "no":
+                    print("Okay, didn't send the message")
+                    break
+
+                elif msg_confo != "yes" and msg_confo != "no":
+                    print("Sorry, didn't get that")
+                    msg_confo = take_command()
+                    msg_confo = msg_confo.lower()
+                    print("User said:", msg_confo)
+    
+
